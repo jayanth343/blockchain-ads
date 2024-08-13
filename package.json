@@ -1,0 +1,12 @@
+{
+  "name": "hardhat-project",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.8"
+  },
+  "dependencies": {
+    "moment": "^2.30.1",
+    "readline-sync": "^1.4.10",
+    "solc-js": "^1.0.1"
+  }
+}
