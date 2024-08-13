@@ -11,26 +11,13 @@ const GAS = 1000000;
 const GASPRICE = "16307759490";
 const url = process.env.HARDHAT;
 const web3 = new Web3(url);
-const bytecodePath = path.join(__dirname, "M_sol_M.bin");
+const bytecodePath = path.join(__dirname, process.env.BYTECODE);
 const bytecode = fs.readFileSync(bytecodePath, "utf8");
-const abi = require("./MyContractAbi.json");
+const abi = require(`./${process.env.CONTRACT_ABI}`);
 const { PythonShell } = require("python-shell");
-blackList = [];
+
 const events = ["InstrSent", "InstrRead"];
 const Nevents = ["NodeVerified", "NodeFail"];
-var blackList = [];
-const InstrSent_h = web3.utils.sha3(
-  "InstrSent(address indexed sender, address indexed destination, string content, uint256 index)"
-);
-const InstrRead_h = web3.utils.sha3(
-  "InstrRead(address indexed sender, address indexed destination, uint256 indx )"
-);
-const NodeVerified_h = web3.utils.sha3(
-  "NodeVerified(address indexed source, address indexed  destination, string content)"
-);
-const NodeFail_h = web3.utils.sha3(
-  "NodeFail(address indexed  sender, address indexed destination, string instruction)"
-);
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -124,17 +111,6 @@ function displayAccessList(defaultAccount, nodeList) {
 
 async function sendinstr(myContract, defaultAccount, nodeList) {
   var allowed_addr = [];
-  // displayAccounts(defaultAccount, providersAccounts);
-  // _dest = providersAccounts[parseInt(readlineSync.question("Enter Destination address: "), 10)];
-  /*
-  const t1 = await myContract.methods.alCount(_dest).call();
-  nl = await t1[0];
-  await nl.forEach((e) => {
-    if (e.access == true) {
-      allowed_addr.append(e.addr);
-    }
-  });
-  */
  
   while (true) {
     if (await isSenderInBlacklist(defaultAccount)){
@@ -146,10 +122,7 @@ async function sendinstr(myContract, defaultAccount, nodeList) {
         parseInt(readlineSync.question("Enter Destination address: "), 10) - 1
       ].addr;
     await sleep(500);
-    //console.log(_dest);
     d = readlineSync.question('Enter Control Variables/Set Parameters');
-    //dd =
-    //  "[0.5, 0.2, 0.1, 0.4, 0.3, 0.5, 0.6, 0.1, 0.5, 0.1, 0.2, 0.3, 0.4, 0.2, 0.3, 0.4, 0.5, 0.1, 0.2, 0.3, 0.4, 0.2, 0.3, 0.4, 0.5, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6]";
     console.log();
     console.log(
       `Sending Instruction:\nFrom:${defaultAccount}\tTo:${_dest}\nInstruction:\n${d}`
@@ -168,81 +141,8 @@ async function sendinstr(myContract, defaultAccount, nodeList) {
     }
   }
 }
-//WIP
 
-async function fetchPastEvents(myContract) {
-  const eventName = "NodeStatus"; // Ensure this matches the smart contract event name
-  const options = {
-    fromBlock: 0,
-    toBlock: "latest",
-    address: myContract.options.address,
-  };
-
-  try {
-    const pastEvents = await myContract.getPastEvents(eventName, options);
-    console.log(`Found ${pastEvents.length} ${eventName} events.`);
-    pastEvents.forEach((event) => {
-      if (pastEvents.length > 0) {
-        console.log("Event:", event.event);
-        console.log("Return Values:", event.returnValues);
-        console.log("Log:", event.log);
-      }
-    });
-  } catch (error) {
-    console.error("Error fetching past events:", error);
-  }
-}
-
-async function rrr(myContract, source, providersAccounts, event) {
-  console.log("LatestInstr");
-  await sleep(500);
-  dd = parseInt(readlineSync.question("Enter Address Index: "), 10);
-  var dest = await providersAccounts[dd];
-  console.log(dest);
-  // Calculate the event signature hash for filtering
-  const eventSignature = web3.utils.sha3(
-    "InstrSent(address,address,string,uint256)"
-  );
-
-  // Assuming you want to filter by sender and destination, hash these values
-  const senderHash = web3.utils.sha3(source);
-  const destinationHash = web3.utils.sha3(dest);
-
-  let options = {
-    fromBlock: 0,
-    toBlock: "latest",
-    topics: [],
-    filter: {
-      sender: source,
-      destination: dest,
-    },
-  };
-
-  console.log("Fetching past InstrSent events...");
-  await sleep(500);
-  await myContract
-    .getPastEvents(event, options)
-    .then((events) => {
-      console.log(`${events.length} InstrSent events found.`);
-      events.forEach((event) => {
-        console.log(
-          `Event found:\nSender: ${event.returnValues.sender}\nDestination: ${event.returnValues.destination}`
-        );
-        console.log(event.returnValues);
-        console.log(Number(event.returnValues[3]));
-        return event;
-      });
-    })
-    .catch((error) => console.error("Error fetching past events:", error));
-
-  await sleep(500);
-}
-
-async function getAL(myContract,source) {
-  
-  console.log(f);
-}
-
+//Nde Verification without use of events
 async function readLatestInstr_noev(myContract, source, providersAccounts) {
   await sleep(500);
   defaultAccount = source;
@@ -279,29 +179,14 @@ async function readLatestInstr_noev(myContract, source, providersAccounts) {
   const r3 = await myContract.methods.getInstr().call();
   if (r3[dd - 1].isRead == true) {
     console.log("Instruction is Read");
-    /*const r4 = await myContract.methods.isVerified(source, dest_obj_addr).send({
-      from: source,
-      gas: GAS,
-      gasPrice: GASPRICE,
-    }); */
+
     console.log("Verifying Node:\n");
     const a = "false";
     const b = "true";
-    const eventName = "NodeStatus";
-    const options = {
-      fromBlock: 0, // Start from the beginning of the blockchain
-      toBlock: "latest", // Go up to the latest block
-      address: myContract.options.address, // Specify the contract address
-    };
     if (await isSenderInBlacklist(source)){
       console.error(`Error: ${source} in BlackList`);
       return;
      }
-
-    /*fetchPastEvents(myContract);    
-    
-    const pevents = await myContract.getPastEvents(eventName,options);
-    console.log(pevents); */
     await sleep(500);
     f = await myContract.methods.alCount(source).call();
     v = 0;
@@ -324,7 +209,7 @@ async function readLatestInstr_noev(myContract, source, providersAccounts) {
     }
   }
 }
-
+// Event code in progress
 async function readLatestInstr(myContract, source, providersAccounts) {
   await sleep(500);
   defaultAccount = source;
@@ -399,7 +284,7 @@ async function readLatestInstr(myContract, source, providersAccounts) {
     }
   }
 
-  /*await myContract.events[events[0]](options).on("data", (obj) => {
+  await myContract.events[events[0]](options).on("data", (obj) => {
     console.log("Instruction Details:\n ", obj);
     console.log(
       `\nLatest Instruction from ${source} to ${providerAccounts[dd]}`
@@ -408,14 +293,10 @@ async function readLatestInstr(myContract, source, providersAccounts) {
     console.log("To: ", obj["returnValues"][1]);
     console.log("Instruction Message", obj["returnValues"][2]);
     l_index = obj["returnValues"][3];
-  });*/
+  });
   await sleep(500);
-  // Example usage
-  /*await fetchPastEvents(myContract,source,dest_obj_addr)
-    .then(() => console.log("Finished fetching past events"))
-    .catch((error) => console.error("Error fetching past events:", error));*/
-
-  /*const r3 = await myContract.methods.instrRead(dest).send({
+  
+  const r3 = await myContract.methods.instrRead(dest).send({
     from: source,
     gas: GAS,
     gasPrice: GASPRICE,
@@ -464,7 +345,7 @@ async function readLatestInstr(myContract, source, providersAccounts) {
     'data', (obj) => {
       console.log(obj);
     }
-  );*/
+  );
 }
 
 async function nodeVerif(myContract, source, dest) {
@@ -540,7 +421,7 @@ async function SVM_ANAL(myContract, source, dest) {
   await sleep(500);
   //console.log(ins);
   console.log("\nSending to SVM");
-  const sp = "C:/Users/jayan/OneDrive/Documents/CNCS/final/scripts/ADS/1.py";
+  const sp = process.env.ADS;
   let op = {
     mode: "text",
     args: [instr],
@@ -551,15 +432,13 @@ async function SVM_ANAL(myContract, source, dest) {
         "Instruction causes an anomaly, Source address will be blacklisted."
       );
       await sleep(500);
-      blackList.push({ sender: source, instr: ins });
-      //console.log(blackList);
-
-      /*const rr = await myContract.methods.addtoBL(dest).send({
-        from: source,
-        gas: GAS,
-        gasPrice: GASPRICE,
-      });
-      console.log(rr);
+      const r5 = await myContract.methods.addtoblackList(source,ins).send(
+        {
+          from:source,
+          gas:GAS,
+          gasPrice: GASPRICE
+        }
+      );
        await sleep(500);
       /*const bl = await myContract.methods.viewBL().call();
       console.log(bl); */
@@ -588,7 +467,16 @@ async function getInstrList(myContract, defaultAccount, providersAccounts) {
 }
 
 async function isSenderInBlacklist(sender) {
-  return blackList.some(item => item.sender === sender);
+  const r = await myContract.methods.returnBL().call();
+  await sleep(500);
+  for(j of r){
+    if(j.addr ==sender)
+      console.log(`User blacklisted: \n${j.ins}`);
+    return 'true';
+    break;
+
+  }
+
 }
 async function main() { 
   //console.log(bytecodePath);
