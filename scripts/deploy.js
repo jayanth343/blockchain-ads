@@ -472,7 +472,7 @@ async function isSenderInBlacklist(sender) {
   for(j of r){
     if(j.addr ==sender)
       console.log(`User blacklisted: \n${j.ins}`);
-    return 'true';
+    return true;
     break;
 
   }
