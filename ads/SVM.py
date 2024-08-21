@@ -6,8 +6,11 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 import joblib  # For saving and loading models
 
 # Load the training and testing datasets
-train_data = pd.read_csv('/home/ishaan/Downloads/archive/hai-20.07/train2.csv', sep=';')
-test_data = pd.read_csv('/home/ishaan/Downloads/archive/hai-20.07/test2.csv', sep=';')
+file_path1 = '/home/ishaan/Downloads/archive/hai-20.07/train2.csv'
+file_path2 = '/home/ishaan/Downloads/archive/hai-20.07/test2.csv'
+
+train_data = pd.read_csv(file_path, sep=';')#import your own file path
+test_data = pd.read_csv(file_path2, sep=';')
 
 # Define feature sets for each group
 feature_groups = {
