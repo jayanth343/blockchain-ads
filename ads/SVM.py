@@ -1,13 +1,17 @@
+import dotenv
 import pandas as pd
+import os
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import joblib  # For saving and loading models
 
+
+dotenv.load_env()
 # Load the training and testing datasets
-file_path1 = '/home/ishaan/Downloads/archive/hai-20.07/train2.csv'
-file_path2 = '/home/ishaan/Downloads/archive/hai-20.07/test2.csv'
+file_path1 = os.getenv('TRAIN_DATA')
+file_path2 = os.getenv('TEST_DATA')
 
 train_data = pd.read_csv(file_path, sep=';')#import your own file path
 test_data = pd.read_csv(file_path2, sep=';')
